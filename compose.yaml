@@ -56,7 +56,7 @@ services:
       - data:/app/data
 
   convertx:
-    image: ghcr.io/c4illin/convertx:v0.18.0
+    image: ghcr.io/c4illin/convertx:v0.20.0
     container_name: tmpdrop-convertx
     restart: unless-stopped
     # LibreOffice and ffmpeg will use everything you give them.
