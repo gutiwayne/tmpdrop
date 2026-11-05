@@ -152,9 +152,13 @@
 
       tr.appendChild(el("td", "mono", fmtBytes(f.size)));
 
-      const expCell = el("td", null, fmtWhen(f.expires_at));
-      if (f.expires_at && !f.expired) expCell.className = "expiring";
-      if (f.expired) expCell.className = "expired";
+      // Expiry as a "stamp": the text sits in a span so it can be shaped without breaking the cell
+      const expCell = el("td", "exp");
+      const expTag = el("span", "stamp", fmtWhen(f.expires_at));
+      if (f.expires_at && !f.expired) expTag.classList.add("expiring");
+      if (f.expired) expTag.classList.add("expired");
+      if (!f.expires_at) expTag.classList.add("forever");
+      expCell.appendChild(expTag);
       tr.appendChild(expCell);
 
       tr.appendChild(el("td", null, f.max_downloads ? `${f.downloads}/${f.max_downloads}` : String(f.downloads)));
@@ -431,6 +435,7 @@
       fd.append("ttl", $("#ttl").value);
       fd.append("password", $("#password").value);
       fd.append("max_downloads", $("#max-downloads").value);
+      fd.append("strip_metadata", $("#strip-metadata").checked ? "true" : "false");
       fd.append("file", file);
 
       const btn = $("#upload-btn");

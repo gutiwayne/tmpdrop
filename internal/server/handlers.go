@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -197,6 +198,14 @@ func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	stripMeta := fields["strip_metadata"] != "false"
+	if stripMeta && strings.HasPrefix(mimeType, "image/") {
+		cmd := exec.CommandContext(r.Context(), "/usr/bin/exiftool", "-all=", "-tagsfromfile", "@", "-Orientation", "-overwrite_original", tmpPath)
+		if err := cmd.Run(); err != nil {
+			s.log.Warn("failed to strip metadata", "error", err, "file", fileName)
+		}
+	}
+
 	created, err := s.store.Adopt(tmpPath, fileName, mimeType, opt)
 	if err != nil {
 		writeStoreWriteError(w, s.log, err)
@@ -225,7 +234,7 @@ func (s *Server) spool(part io.Reader) (path, mimeType string, err error) {
 		_ = os.Remove(path)
 		return "", "", err
 	}
-	mimeType = http.DetectContentType(peek[:n])
+	mimeType = detectType(peek[:n])
 
 	if _, err := tmp.Write(peek[:n]); err != nil {
 		tmp.Close()
@@ -252,7 +261,33 @@ func sniff(f *os.File) (string, error) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		return "", err
 	}
-	return http.DetectContentType(peek[:n]), nil
+	return detectType(peek[:n]), nil
+}
+
+// detectType is http.DetectContentType plus the GPS/sports formats it does not
+// know. Uploads and conversion results both go through it, so a file gets the
+// same type whichever way it arrived. None of these types is inline-safe, so
+// they are always served as downloads.
+func detectType(peek []byte) string {
+	content := string(peek)
+
+	switch {
+	case strings.Contains(content, "<gpx"):
+		return "application/gpx+xml"
+	case strings.Contains(content, "<kml"):
+		return "application/vnd.google-earth.kml+xml"
+	case strings.Contains(content, "<TrainingCenterDatabase"):
+		return "application/tcx+xml"
+	// GeoJSON: "type" may come after the first 512 bytes (gpsbabel writes keys
+	// in alphabetical order, so "features" and "geometry" come first).
+	case strings.HasPrefix(strings.TrimSpace(content), "{") && strings.Contains(content, "\"geometry\"") &&
+		(strings.Contains(content, "\"type\"") || strings.Contains(content, "\"coordinates\"")):
+		return "application/geo+json"
+	// FIT: byte 0 is the header size (12 or 14) and bytes 8-11 are ".FIT".
+	case len(peek) >= 12 && (peek[0] == 12 || peek[0] == 14) && string(peek[8:12]) == ".FIT":
+		return "application/vnd.garmin.fit"
+	}
+	return http.DetectContentType(peek)
 }
 
 func writeUploadError(w http.ResponseWriter, err error) {

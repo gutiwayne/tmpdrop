@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>tmpdrop — temporary file sharing</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23D8B063'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/style.css?v=20261102b">
 </head>
 <body>
   <header class="site-head">
@@ -43,6 +43,10 @@
             <input type="password" id="password" name="password" maxlength="128" placeholder="optional">
           </label>
         </div>
+        <label class="checkbox">
+          <input type="checkbox" id="strip-metadata" name="strip_metadata" checked>
+          <span>Strip GPS/EXIF</span>
+        </label>
         <button type="submit" class="btn primary" id="upload-btn">Upload</button>
         <div id="progress" class="progress hidden"><div id="progress-bar"></div></div>
       </form>
@@ -84,6 +88,6 @@
   </div>
 
   <div class="toast" id="toast" role="status"></div>
-  <script src="/assets/app.js" defer></script>
+  <script src="/assets/app.js?v=20261102b" defer></script>
 </body>
 </html>

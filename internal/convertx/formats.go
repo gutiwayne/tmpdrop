@@ -120,7 +120,15 @@ var converterForInput = map[string]map[string]bool{
 	"go": {converterLibreOffice: true}, "rs": {converterLibreOffice: true},
 	"java": {converterLibreOffice: true}, "c": {converterLibreOffice: true},
 	"cpp": {converterLibreOffice: true}, "sql": {converterLibreOffice: true},
-	"vcf": {converterVCF: true},
+	"vcf":     {converterVCF: true},
+	"kmz":     {converterGpsbabel: true},
+	"kml":     {converterGpsbabel: true},
+	"fit":     {converterGpsbabel: true},
+	"tcx":     {converterGpsbabel: true},
+	"gpx":     {converterGpsbabel: true},
+	"ozi":     {converterGpsbabel: true},
+	"gdb":     {converterGpsbabel: true},
+	"geojson": {converterGpsbabel: true},
 }
 
 var mainOutputs = map[string]map[string]bool{
@@ -153,6 +161,7 @@ var mainOutputs = map[string]map[string]bool{
 	converterXeLaTeX:    nil,
 	converterMarkitdown: nil,
 	converterMsgconvert: nil,
+	converterGpsbabel:   {"gpx": true, "kml": true, "geojson": true, "tcx": true, "csv": true},
 }
 
 var spreadsheetInputs = map[string]bool{

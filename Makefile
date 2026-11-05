@@ -1,6 +1,6 @@
 GO     ?= go
 BIN     := bin/tmpdrop
-VERSION ?= 2.1.0
+VERSION ?= 2.5.0
 
 GOFLAGS := -trimpath -ldflags="-s -w -X main.version=$(VERSION)"
 
@@ -34,7 +34,7 @@ run:
 
 # Variants for hosts without a local Go toolchain; they build and test inside
 # a Go container.
-DOCKER_GO := docker run --rm -v "$$(pwd)":/src -w /src golang:1.24-alpine
+DOCKER_GO := docker run --rm -v "$$(pwd)":/src -w /src golang:1.27-alpine
 
 build-docker:
 	@mkdir -p bin

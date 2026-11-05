@@ -71,6 +71,8 @@ without it the fonts are served as `application/octet-stream`.
 
 ## Conversion
 
+### Remote conversion (ConvertX)
+
 The converter tables are tuned to what a real ConvertX 0.18 instance can
 actually do. Every format offered in the UI was tested end to end. Three
 exclusions are deliberate:
@@ -126,3 +128,45 @@ ever changed that status. There is a test for the 401 path.
 Registration failures keep the response body (bounded) in the error, because
 "already in use" is how ConvertX reports an account that exists with a different
 password, and `ensureAuth` reads that text to tell it apart from a real failure.
+
+### Local conversion (gpsbabel)
+
+As of v2.3.0, GPS and sports formats (KMZ, KML, FIT, TCX, OZI, GDB, GeoJSON)
+are converted **locally using gpsbabel**, without ConvertX overhead or network
+round-trips. The binary ships with Ubuntu 24.04; Alpine 3.20 was dropped because
+gpsbabel 1.9+ requires Qt6 libraries that conflict with the distro's older Qt5
+stack.
+
+**Format translation:** User-facing extensions (e.g., `.tcx`) map to gpsbabel
+codes (e.g., `gtrnctr`). Mappings live in `localConvertGpsbabel()` in
+`internal/convertx/client.go`. If a new format needs different input or output
+codes, update that switch statement.
+
+**Converter selection:** API clients may omit `converter`. It is resolved with
+`ConverterFor()` before anything else, so a GPS conversion always takes the
+local path; sending it to ConvertX would leave the job hanging until the
+deadline, because ConvertX does not know these formats.
+
+**KMZ handling:** KMZ is a zip archive containing KML. The archive is spooled to
+a temporary file (zip needs random access) and the first `.kml` inside is
+streamed to gpsbabel's input file, capped at 512 MiB. Nothing is held in memory,
+so a large KMZ or a zip bomb cannot exhaust a small container memory limit.
+
+**MIME type detection:** `detectType()` in `internal/server/handlers.go` types
+both uploads and conversion results. On top of `http.DetectContentType` it
+recognises geospatial formats by content (`<gpx`, `<kml`,
+`<TrainingCenterDatabase`, a GeoJSON object with `"geometry"`) and FIT by its
+header (header size 12 or 14 in byte 0, `.FIT` in bytes 8-11). None of these
+types is inline-safe, so they are always served as downloads.
+
+## Metadata stripping
+
+As of v2.4.0, uploaded images automatically have their EXIF and GPS metadata stripped **by default**, via `exiftool`. Since there is no authentication, preventing accidental metadata leakage is a privacy baseline.
+
+The command uses `-all=` to remove all tags, combined with `-tagsfromfile @ -Orientation` to preserve the `Orientation` EXIF tag. This tag is critical for mobile phone photos: many are stored as landscape at the pixel level and rely on the Orientation tag to tell the viewer to rotate them. Removing it would make all such photos display sideways without changing the actual image data.
+
+Invocation happens in `handleUpload` after form parsing and before `store.Adopt`, so the clean file is persisted. If exiftool fails, a warning is logged but the upload continues — metadata stripping is best-effort, not a blocker.
+
+The feature is **opt-in from the UI** (checkbox "Strip GPS/EXIF") but **ON by default**, so older API clients and basic curl uploads are protected even if they don't send the field.
+
+Applies only to `image/*` MIME types. Videos and other formats are left untouched; exiftool on multi-gigabyte files is slow and would risk timeouts.
