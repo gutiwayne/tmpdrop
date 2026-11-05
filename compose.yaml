@@ -27,6 +27,7 @@ services:
       args:
         VERSION: "2.5.0"
     image: tmpdrop:2.5.0
+    pull_policy: build
     container_name: tmpdrop
     restart: unless-stopped
     depends_on:
