@@ -1,5 +1,5 @@
 # --- build stage ----------------------------------------------------------
-FROM golang:1.24-alpine AS build
+FROM golang:1.27.3-alpine AS build
 ARG VERSION=dev
 WORKDIR /src
 COPY go.mod ./
@@ -10,10 +10,12 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath \
     -o /out/tmpdrop ./cmd/tmpdrop
 
 # --- runtime stage ---------------------------------------------------------
-FROM alpine:3.20
-RUN apk add --no-cache ca-certificates tzdata \
-    && addgroup -S -g 10001 tmpdrop \
-    && adduser -S -D -H -u 10001 -G tmpdrop tmpdrop
+FROM ubuntu:24.04
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+    ca-certificates tzdata gpsbabel libimage-exiftool-perl curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r -g 10001 tmpdrop \
+    && useradd -r -u 10001 -g tmpdrop -d /nonexistent -s /sbin/nologin -c "" tmpdrop
 WORKDIR /app
 RUN mkdir -p /app/data && chown tmpdrop:tmpdrop /app/data
 COPY --from=build /out/tmpdrop /usr/local/bin/tmpdrop
@@ -23,5 +25,5 @@ ENV TMPDROP_ADDR=:8080 \
 VOLUME ["/app/data"]
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -q -O- http://127.0.0.1:8080/healthz || exit 1
+    CMD curl -sf http://127.0.0.1:8080/healthz > /dev/null || exit 1
 ENTRYPOINT ["tmpdrop"]

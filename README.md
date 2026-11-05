@@ -11,6 +11,8 @@ embedded web UI, a JSON manifest for metadata and local disk for storage.
 
 - 📤 Temporary file sharing — drag, drop, copy the link
 - 🔄 On-demand format conversion: audio, video, images, documents, e-books
+- 🗺️ Local GPS/sports conversion (GPX, KML, KMZ, FIT, TCX, GeoJSON…) via gpsbabel
+- 🧹 GPS/EXIF metadata stripped from uploaded images, on by default
 - ⏱️ Automatic expiration, per file
 - 🔢 Download limits and per-file passwords
 - 📦 Self-hosted in one `docker compose up`
@@ -51,7 +53,7 @@ Two things worth knowing before you run it.
 [ConvertX](https://github.com/C4illin/ConvertX), which bundles ffmpeg,
 LibreOffice and Calibre — that is where the size comes from, and it is what lets
 tmpdrop turn a `.docx` into a PDF or an `.mkv` into an MP3. The tmpdrop image
-itself is a few MB. If you do not want conversion at all, set `CONVERTX_URL=` (an
+itself is about 250 MB. If you do not want conversion at all, set `CONVERTX_URL=` (an
 empty value) in a `.env` file: the Convert button disappears and everything else
 behaves the same.
 
@@ -76,7 +78,7 @@ already stored in its volume.
 
 ## Build from source
 
-Requires Go 1.24.
+Requires Go 1.27.
 
 ```bash
 make build          # produces bin/tmpdrop
@@ -109,9 +111,12 @@ the same lifetime and password as the original.
 | **PDF** | docx, odt, rtf, txt, html, epub, png, svg |
 | **Code & data** — json, yaml, toml, xml, py, js, ts, go, rs, java, c, cpp, sql, sh | pdf, txt, html, odt, docx, rtf, epub |
 | **Contacts** — vcf | csv |
+| **GPS & sports** — gpx, kml, kmz, fit, tcx, geojson, ozi, gdb | gpx, kml, tcx, geojson, csv — converted locally by gpsbabel, no ConvertX needed |
 
 The work is done by [ConvertX](https://github.com/C4illin/ConvertX), which the
-compose file runs alongside tmpdrop and pins to `v0.18.0`.
+compose file runs alongside tmpdrop and pins to `v0.20.0`. GPS and sports
+formats are the exception: the Docker image ships
+[gpsbabel](https://www.gpsbabel.org) and converts them locally.
 
 > **This is deliberately less than ConvertX can do.** tmpdrop keeps a curated
 > table in [`internal/convertx/formats.go`](internal/convertx/formats.go) of the
@@ -234,6 +239,9 @@ Range requests are supported. A ranged or `HEAD` request never counts towards
 Protected files take the password in an `X-File-Password` header; it is not
 accepted in the query string, where it would leak into proxy logs.
 
+Images (`image/*`) have their EXIF/GPS metadata stripped on upload, keeping only
+the orientation tag. Send `-F "strip_metadata=false"` to keep it.
+
 Upload example:
 
 ```bash
@@ -302,10 +310,11 @@ Headings use positive letter-spacing so the product name reads as a mark, and
 panel titles are small tracked uppercase, which turns an `<h2>` into a section
 label instead of a headline.
 
-The typeface is [Poppins](https://github.com/itfoundry/Poppins), served from the
-binary at `/assets/fonts/`. It is **not** loaded from a CDN: the page renders
+The typefaces are [Poppins](https://github.com/itfoundry/Poppins) and
+[Archivo](https://github.com/Omnibus-Type/Archivo), served from the binary at
+`/assets/fonts/`. It is **not** loaded from a CDN: the page renders
 identically on a machine with no internet access, which is the whole point of a
-self-hosted tool. Poppins is licensed under the SIL Open Font License 1.1 — see
+self-hosted tool. Both are licensed under the SIL Open Font License 1.1 — see
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). The program itself stays AGPL-3.0.
 
 ## Tests

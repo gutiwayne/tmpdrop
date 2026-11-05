@@ -177,6 +177,26 @@ input, select {
 input:focus, select:focus { outline: none; border-color: var(--accent); }
 input[type="number"] { width: 90px; }
 
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+}
+.checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+}
+.checkbox span {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--fg);
+}
+
 .btn {
   padding: 0.6rem 1.4rem;
   font: inherit;
@@ -388,4 +408,81 @@ tr:hover td { background: var(--panel-soft); }
   width: 0;
   background: var(--accent);
   transition: width 0.15s linear;
+}
+
+/* ══════════ "Shipping label" theme (final layer, overrides the rules above) ══════════ */
+@font-face { font-family: "Archivo"; font-style: normal; font-weight: 100 900; font-stretch: 62% 125%; font-display: swap;
+  src: url("/assets/fonts/archivo-var.woff2") format("woff2"); }
+:root {
+  color-scheme: light;
+  --font: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --bg: #E7EEF7; --panel: #FFFFFF; --panel-soft: #F2F6FB; --border: #CBD6E4; --border-strong: #9FB2CA;
+  --fg: #142033; --muted: #4F5E73;
+  --accent: #C8102E; --accent-strong: #A30D25; --accent-soft: #C8102E; --accent-bg: #FCE8EB;
+  --danger: #B42318; --on-accent: #FFFFFF; --shadow: none; --radius: 10px; --radius-sm: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0F1726; --panel: #172235; --panel-soft: #1D2A40; --border: #2A3A54; --border-strong: #3C5070;
+    --fg: #E8EEF7; --muted: #A3B1C6;
+    --accent: #FF6B5E; --accent-strong: #FF8A7F; --accent-soft: #FF8A7F; --accent-bg: #3A1F27;
+    --danger: #F2877D; --on-accent: #23090C;
+  }
+}
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+body { font-variant-numeric: tabular-nums; }
+.kicker { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--muted); }
+h1 { font-weight: 800; font-stretch: 112%; letter-spacing: -0.01em; }
+h2 { text-transform: none; letter-spacing: 0; font-size: 1.15rem; font-weight: 700; }
+.panel { box-shadow: none; border: 1px solid var(--border); }
+/* Upload area as the address box of a label: dashed border and cut corners */
+.dropzone { border: 2px dashed var(--border-strong); border-radius: var(--radius); background: var(--panel-soft); }
+.dropzone.drag, .dropzone.has-file { border-color: var(--accent); background: var(--accent-bg); }
+.row span, .modal label span { text-transform: none; letter-spacing: 0; font-size: 0.9rem; font-weight: 600; }
+input, select { min-height: 44px; border-radius: var(--radius-sm); }
+.btn { min-height: 44px; border-radius: var(--radius-sm); font-weight: 600; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--on-accent); }
+.share { border-radius: var(--radius); }
+.share .head { text-transform: none; letter-spacing: 0; }
+th { text-transform: none; letter-spacing: 0; font-size: 0.85rem; color: var(--muted); }
+tr:hover td { background: var(--panel-soft); }
+.fname { font-weight: 650; }
+.fnote { font-size: 0.85rem; }
+/* Expiry as a postmark: double-bordered box, slightly rotated */
+td.exp { white-space: nowrap; }
+.stamp { display: inline-block; padding: 2px 9px; border: 2px solid currentColor; border-radius: 4px; outline: 1px solid currentColor;
+  outline-offset: 2px; font-weight: 700; font-stretch: 88%; font-size: 0.88rem; line-height: 1.4; transform: rotate(-3deg); color: var(--muted); }
+.stamp.expiring { color: var(--accent); }
+.stamp.expired { color: var(--muted); text-decoration: line-through; transform: none; opacity: .75; }
+.stamp.forever { color: var(--muted); border-style: dashed; outline: none; transform: none; }
+@media (prefers-reduced-motion: reduce) { .stamp { transform: none; } }
+.actions button, .actions a { border-radius: var(--radius-sm); min-height: 38px; }
+.dd-menu { box-shadow: 0 10px 30px rgba(20, 32, 51, .18); }
+.dd-menu .head { text-transform: none; letter-spacing: 0; }
+.modal { box-shadow: 0 20px 50px rgba(20, 32, 51, .25); }
+.toast { border-radius: var(--radius-sm); }
+input[type="checkbox"] { accent-color: var(--accent); }
+.btn { font-size: 1rem; padding-left: 1.2rem; padding-right: 1.2rem; }
+.kicker { font-size: 0.95rem; }
+.usage strong { color: var(--fg); }
+/* File table: sizes never wrap; names break where they fit, not letter by letter */
+td.mono { white-space: nowrap; }
+.fname { word-break: normal; overflow-wrap: anywhere; }
+/* Mobile: each file as a card (name / size + stamp + downloads / actions); the stamp shows again */
+@media (max-width: 640px) {
+  #file-list table thead { display: none; }
+  #file-list table, #file-list tbody { display: block; }
+  #file-list tbody tr { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 8px 14px;
+    padding: 14px 0; border-bottom: 1px solid var(--border); }
+  #file-list tbody tr:last-child { border-bottom: 0; }
+  #file-list tbody td { display: block; padding: 0; border: 0; background: transparent; }
+  #file-list tbody td:first-child { grid-column: 1 / -1; font-size: 1.05rem; }
+  #file-list tbody td.exp { display: block; }
+  #file-list tbody td:nth-child(4) { color: var(--muted); }
+  #file-list tbody td:nth-child(4)::before { content: "↓ "; }
+  #file-list tbody td:last-child { grid-column: 1 / -1; }
+  #file-list .actions { justify-content: flex-start; flex-wrap: wrap; }
+  #file-list tr:hover td { background: transparent; }
 }

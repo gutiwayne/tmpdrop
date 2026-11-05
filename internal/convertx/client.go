@@ -1,6 +1,7 @@
 package convertx
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -10,6 +11,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -96,6 +99,16 @@ func (c *Client) Convert(ctx context.Context, src Source, inputName, target, con
 }
 
 func (c *Client) convertOnce(ctx context.Context, src Source, inputName, target, converter string, dst io.Writer) (string, error) {
+	// Resolve the converter here, not only in startConvert: a request without
+	// one (plain API use) must still reach the local gpsbabel path instead of
+	// being sent to ConvertX, which does not know these formats.
+	if converter == "" {
+		converter = ConverterFor(inputName, target)
+	}
+	if converter == converterGpsbabel {
+		return c.localConvertGpsbabel(ctx, src, inputName, target, dst)
+	}
+
 	token, err := c.ensureAuth(ctx)
 	if err != nil {
 		return "", err
@@ -480,4 +493,123 @@ func firstMatch(re *regexp.Regexp, b []byte) string {
 		return ""
 	}
 	return strings.TrimSpace(string(m[1]))
+}
+
+func (c *Client) localConvertGpsbabel(ctx context.Context, src Source, inputName, target string, dst io.Writer) (string, error) {
+	inFile, err := src.Open()
+	if err != nil {
+		return "", fmt.Errorf("convertx: open source: %w", err)
+	}
+	defer inFile.Close()
+
+	ext := normalizeInputExt(extractExt(inputName))
+	inputExt := ext
+
+	tmpIn, err := os.CreateTemp("", "convertx-*")
+	if err != nil {
+		return "", fmt.Errorf("convertx: create temp input: %w", err)
+	}
+	defer os.Remove(tmpIn.Name())
+
+	// Everything goes through disk, never memory: the container may have a
+	// small memory limit and a KMZ can be large (or a zip bomb).
+	if ext == "kmz" {
+		err = extractKML(inFile, tmpIn)
+		inputExt = "kml"
+	} else {
+		_, err = io.Copy(tmpIn, inFile)
+	}
+	if cerr := tmpIn.Close(); err == nil {
+		err = cerr
+	}
+	if err != nil {
+		return "", err
+	}
+
+	tmpOut, err := os.CreateTemp("", "convertx-*")
+	if err != nil {
+		return "", fmt.Errorf("convertx: create temp output: %w", err)
+	}
+	tmpOut.Close()
+	defer os.Remove(tmpOut.Name())
+
+	// Map file extensions to gpsbabel format codes
+	gpsbabelInputFmt := inputExt
+	gpsbabelOutputFmt := target
+
+	switch inputExt {
+	case "fit":
+		gpsbabelInputFmt = "garmin_fit"
+	case "tcx":
+		gpsbabelInputFmt = "gtrnctr"
+	}
+
+	switch target {
+	case "fit":
+		gpsbabelOutputFmt = "garmin_fit"
+	case "tcx":
+		gpsbabelOutputFmt = "gtrnctr"
+	}
+
+	cmd := exec.CommandContext(ctx, "/usr/bin/gpsbabel", "-i", gpsbabelInputFmt, "-f", tmpIn.Name(), "-o", gpsbabelOutputFmt, "-F", tmpOut.Name())
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("%w: %s", ErrConvertFailed, err)
+	}
+
+	outFile, err := os.Open(tmpOut.Name())
+	if err != nil {
+		return "", fmt.Errorf("convertx: open output: %w", err)
+	}
+	defer outFile.Close()
+
+	if _, err := io.Copy(dst, outFile); err != nil {
+		return "", fmt.Errorf("convertx: write output: %w", err)
+	}
+
+	base := strings.TrimSuffix(inputName, filepath.Ext(inputName))
+	return base + "." + target, nil
+}
+
+// maxKMLSize caps the KML extracted from a KMZ, so a zip bomb cannot fill the
+// disk.
+const maxKMLSize = 512 << 20
+
+// extractKML copies the first .kml inside the KMZ read from src into dst. The
+// archive is spooled to a temporary file because zip needs random access.
+func extractKML(src io.Reader, dst io.Writer) error {
+	tmpZip, err := os.CreateTemp("", "convertx-kmz-*")
+	if err != nil {
+		return fmt.Errorf("convertx: create temp kmz: %w", err)
+	}
+	defer os.Remove(tmpZip.Name())
+	defer tmpZip.Close()
+
+	size, err := io.Copy(tmpZip, src)
+	if err != nil {
+		return fmt.Errorf("convertx: read kmz: %w", err)
+	}
+	zr, err := zip.NewReader(tmpZip, size)
+	if err != nil {
+		return fmt.Errorf("%w: open kmz: %s", ErrConvertFailed, err)
+	}
+
+	for _, f := range zr.File {
+		if normalizeInputExt(extractExt(f.Name)) != "kml" {
+			continue
+		}
+		rc, err := f.Open()
+		if err != nil {
+			return fmt.Errorf("%w: open kml in kmz: %s", ErrConvertFailed, err)
+		}
+		defer rc.Close()
+		n, err := io.Copy(dst, io.LimitReader(rc, maxKMLSize+1))
+		if err != nil {
+			return fmt.Errorf("%w: read kml: %s", ErrConvertFailed, err)
+		}
+		if n > maxKMLSize {
+			return fmt.Errorf("%w: kml inside kmz is larger than %d MiB", ErrConvertFailed, maxKMLSize>>20)
+		}
+		return nil
+	}
+	return fmt.Errorf("%w: no kml found in kmz", ErrConvertFailed)
 }
