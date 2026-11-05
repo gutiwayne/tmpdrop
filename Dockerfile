@@ -10,7 +10,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath \
     -o /out/tmpdrop ./cmd/tmpdrop
 
 # --- runtime stage ---------------------------------------------------------
-FROM alpine:3.20
+FROM alpine:3.24
 RUN apk add --no-cache ca-certificates tzdata \
     && addgroup -S -g 10001 tmpdrop \
     && adduser -S -D -H -u 10001 -G tmpdrop tmpdrop
