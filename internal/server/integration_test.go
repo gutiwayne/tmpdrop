@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jesusg703/tmpdrop/internal/config"
+	"github.com/gutiwayne/tmpdrop/internal/config"
 )
 
 type miniCX struct {

@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jesusg703/tmpdrop/internal/config"
-	"github.com/jesusg703/tmpdrop/internal/convertx"
-	"github.com/jesusg703/tmpdrop/internal/server/web"
-	"github.com/jesusg703/tmpdrop/internal/store"
+	"github.com/gutiwayne/tmpdrop/internal/config"
+	"github.com/gutiwayne/tmpdrop/internal/convertx"
+	"github.com/gutiwayne/tmpdrop/internal/server/web"
+	"github.com/gutiwayne/tmpdrop/internal/store"
 )
 
 func init() {

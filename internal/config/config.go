@@ -21,7 +21,7 @@ const (
 	defaultQuotaDefault    = 250 << 20
 	defaultMaxFilesClient  = 50
 	defaultLogLevel        = "info"
-	DefaultSourceURL       = "https://github.com/jesusg703/tmpdrop"
+	DefaultSourceURL       = "https://github.com/gutiwayne/tmpdrop"
 	defaultConvertTimeout  = 5 * time.Minute
 )
 

@@ -9,7 +9,7 @@
   "quota_default": "250MB",
   "max_files_per_client": 50,
   "log_level": "info",
-  "source_url": "https://github.com/jesusg703/tmpdrop",
+  "source_url": "https://github.com/gutiwayne/tmpdrop",
   "trusted_proxies": [],
   "convertx": {
     "url": "",

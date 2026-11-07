@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jesusg703/tmpdrop/internal/convertx"
-	"github.com/jesusg703/tmpdrop/internal/store"
+	"github.com/gutiwayne/tmpdrop/internal/convertx"
+	"github.com/gutiwayne/tmpdrop/internal/store"
 )
 
 var validID = regexp.MustCompile(`^[0-9a-f]{24}$`)
