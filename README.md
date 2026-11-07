@@ -37,7 +37,7 @@ embedded web UI, a JSON manifest for metadata and local disk for storage.
 ## Quick start (Docker)
 
 ```bash
-git clone https://github.com/jesusg703/tmpdrop.git
+git clone https://github.com/gutiwayne/tmpdrop.git
 cd tmpdrop
 docker compose up -d
 # open http://localhost:8080, or http://<this-machine>:8080 from anywhere on your network

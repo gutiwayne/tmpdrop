@@ -16,9 +16,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jesusg703/tmpdrop/internal/config"
-	"github.com/jesusg703/tmpdrop/internal/server"
-	"github.com/jesusg703/tmpdrop/internal/store"
+	"github.com/gutiwayne/tmpdrop/internal/config"
+	"github.com/gutiwayne/tmpdrop/internal/server"
+	"github.com/gutiwayne/tmpdrop/internal/store"
 )
 
 var version = "dev"
