@@ -27,6 +27,9 @@ services:
       args:
         VERSION: "2.5.0"
     image: tmpdrop:2.5.0
+    # Always build from this checkout, never pull: there is no published image,
+    # and after a `git pull` the next `up` picks up the new code (cached layers
+    # make an unchanged rebuild take seconds).
     pull_policy: build
     container_name: tmpdrop
     restart: unless-stopped
