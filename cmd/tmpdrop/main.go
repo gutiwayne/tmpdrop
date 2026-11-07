@@ -1,4 +1,4 @@
-// tmpdrop — temporary file sharing. Copyright (C) 2026 jesusg703.
+// tmpdrop — temporary file sharing. Copyright (C) 2026 gutiwayne.
 // Licensed under the GNU Affero General Public License v3.0 or later.
 // See LICENSE, and section 13: a modified version run as a network service
 // must offer its source to the people using it.
