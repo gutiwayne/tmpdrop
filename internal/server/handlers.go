@@ -163,6 +163,7 @@ func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 				writeUploadError(w, err)
 				return
 			}
+			mimeType = refineByName(mimeType, fileName)
 			continue
 		}
 
@@ -288,6 +289,26 @@ func detectType(peek []byte) string {
 		return "application/vnd.garmin.fit"
 	}
 	return http.DetectContentType(peek)
+}
+
+// zipBasedTypes are ZIP containers that content sniffing reports as
+// application/zip. Served as zip, phone browsers rename them to .zip
+// (an .apk then cannot be installed), so the extension decides.
+var zipBasedTypes = map[string]string{
+	".apk":  "application/vnd.android.package-archive",
+	".xapk": "application/vnd.android.package-archive",
+	".epub": "application/epub+zip",
+	".jar":  "application/java-archive",
+}
+
+func refineByName(mimeType, fileName string) string {
+	if mimeType != "application/zip" {
+		return mimeType
+	}
+	if t, ok := zipBasedTypes[strings.ToLower(filepath.Ext(fileName))]; ok {
+		return t
+	}
+	return mimeType
 }
 
 func writeUploadError(w http.ResponseWriter, err error) {
