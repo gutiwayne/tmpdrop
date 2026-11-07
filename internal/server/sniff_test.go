@@ -39,3 +39,19 @@ func TestSniffGPSFormats(t *testing.T) {
 		}
 	}
 }
+
+func TestRefineByName(t *testing.T) {
+	cases := []struct{ mime, name, want string }{
+		{"application/zip", "cesta.apk", "application/vnd.android.package-archive"},
+		{"application/zip", "APP.APK", "application/vnd.android.package-archive"},
+		{"application/zip", "book.epub", "application/epub+zip"},
+		{"application/zip", "photos.zip", "application/zip"},
+		{"application/zip", "noext", "application/zip"},
+		{"image/png", "fake.apk", "image/png"}, // only ZIP content can become an APK
+	}
+	for _, c := range cases {
+		if got := refineByName(c.mime, c.name); got != c.want {
+			t.Errorf("%s (%s): got %q, want %q", c.name, c.mime, got, c.want)
+		}
+	}
+}
