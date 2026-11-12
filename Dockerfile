@@ -10,7 +10,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath \
     -o /out/tmpdrop ./cmd/tmpdrop
 
 # --- runtime stage ---------------------------------------------------------
-FROM ubuntu:24.04
+FROM ubuntu:25.10
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     ca-certificates tzdata gpsbabel libimage-exiftool-perl curl \
     && rm -rf /var/lib/apt/lists/* \
