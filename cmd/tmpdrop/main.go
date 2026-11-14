@@ -72,7 +72,9 @@ func main() {
 	logger.Info("starting tmpdrop", "version", version, "addr", cfg.Addr, "storage", cfg.StorageDir, "convertx", cfg.ConvertX.Enabled())
 	// ConvertX logs its own "Elysia is running at http://localhost:3000"; that
 	// is its internal port, not reachable from the host. Point at ours instead.
-	logger.Info("tmpdrop is running", "url", "http://"+displayAddr(cfg.Addr))
+	url := "http://" + displayAddr(cfg.Addr)
+	logger.Info("tmpdrop is running", "url", url)
+	go printBanner(ctx, url, cfg.ConvertX.URL)
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -94,6 +96,47 @@ func main() {
 			logger.Error("graceful shutdown failed", "error", err)
 		}
 		logger.Info("shutdown complete")
+	}
+}
+
+// printBanner prints the URL in a box that stands out from the log lines. When
+// ConvertX is configured it first waits for ConvertX to answer and to finish
+// listing its tools, so the banner comes last instead of getting buried.
+func printBanner(ctx context.Context, url, convertxURL string) {
+	if convertxURL != "" {
+		client := &http.Client{Timeout: 2 * time.Second}
+		deadline := time.Now().Add(2 * time.Minute)
+		for time.Now().Before(deadline) {
+			resp, err := client.Get(convertxURL)
+			if err == nil {
+				resp.Body.Close()
+				break
+			}
+			if !sleepCtx(ctx, 2*time.Second) {
+				return
+			}
+		}
+		if !sleepCtx(ctx, 10*time.Second) {
+			return
+		}
+	}
+	line := strings.Repeat("*", 60)
+	text := "TMPDROP IS READY  -->  " + url
+	pad := 60 - 6 - len(text)
+	if pad < 0 {
+		pad = 0
+	}
+	blank := "*" + strings.Repeat(" ", 58) + "*"
+	fmt.Fprintf(os.Stderr, "\n%s\n%s\n*   %s%s *\n%s\n%s\n\n", line, blank, text, strings.Repeat(" ", pad), blank, line)
+}
+
+// sleepCtx waits for d and reports false if ctx ended first.
+func sleepCtx(ctx context.Context, d time.Duration) bool {
+	select {
+	case <-ctx.Done():
+		return false
+	case <-time.After(d):
+		return true
 	}
 }
 
