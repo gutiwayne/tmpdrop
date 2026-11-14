@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -69,6 +70,9 @@ func main() {
 	defer stop()
 
 	logger.Info("starting tmpdrop", "version", version, "addr", cfg.Addr, "storage", cfg.StorageDir, "convertx", cfg.ConvertX.Enabled())
+	// ConvertX logs its own "Elysia is running at http://localhost:3000"; that
+	// is its internal port, not reachable from the host. Point at ours instead.
+	logger.Info("tmpdrop is running", "url", "http://"+displayAddr(cfg.Addr))
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -91,6 +95,14 @@ func main() {
 		}
 		logger.Info("shutdown complete")
 	}
+}
+
+// displayAddr turns a listen address such as ":8080" into "localhost:8080".
+func displayAddr(addr string) string {
+	if strings.HasPrefix(addr, ":") || strings.HasPrefix(addr, "0.0.0.0:") {
+		return "localhost:" + addr[strings.LastIndex(addr, ":")+1:]
+	}
+	return addr
 }
 
 func newLogger(level string) *slog.Logger {
