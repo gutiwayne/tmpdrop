@@ -49,6 +49,9 @@ updates:
     labels:
       - "dependencies"
       - "docker-compose"
+    ignore:
+      # Built locally from the Dockerfile, not pulled from a registry.
+      - dependency-name: "tmpdrop"
     groups:
       compose-minor-patch:
         update-types: ["minor", "patch"]
