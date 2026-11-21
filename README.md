@@ -16,6 +16,7 @@ embedded web UI, a JSON manifest for metadata and local disk for storage.
 - ⏱️ Automatic expiration, per file
 - 🔢 Download limits and per-file passwords
 - 📦 Self-hosted in one `docker compose up`
+- 🌐 English / Spanish interface (🌐 button; follows the browser by default)
 - 🔒 No account, no sign-up, no telemetry
 
 ### Under the hood

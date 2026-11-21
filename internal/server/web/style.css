@@ -486,3 +486,7 @@ td.mono { white-space: nowrap; }
   #file-list .actions { justify-content: flex-start; flex-wrap: wrap; }
   #file-list tr:hover td { background: transparent; }
 }
+
+/* Language switch (🌐 EN / ES) in the top corner of the header. */
+.site-head { position: relative; }
+.lang-btn { position: absolute; top: 1rem; right: 1.5rem; min-height: 0; padding: 0.35rem 0.8rem; font-size: 0.85rem; }

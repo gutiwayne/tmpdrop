@@ -134,6 +134,33 @@ func TestIndexPage(t *testing.T) {
 	}
 }
 
+func TestLanguageSwitchIsServed(t *testing.T) {
+	srv := newTestServer(t, t.TempDir(), testConfig())
+	res, err := http.Get(srv.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(res.Body)
+	res.Body.Close()
+	for _, want := range []string{`id="lang-btn"`, `/assets/i18n.js`} {
+		if !strings.Contains(string(body), want) {
+			t.Errorf("index is missing %s", want)
+		}
+	}
+	res, err = http.Get(srv.URL + "/assets/i18n.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("i18n.js status = %d", res.StatusCode)
+	}
+	js, _ := io.ReadAll(res.Body)
+	if !strings.Contains(string(js), "tmpdrop.lang") {
+		t.Errorf("i18n.js is not the language switch")
+	}
+}
+
 func TestUploadDownloadDelete(t *testing.T) {
 	srv := newTestServer(t, t.TempDir(), testConfig())
 
