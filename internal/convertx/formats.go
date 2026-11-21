@@ -65,6 +65,12 @@ func normalizeOutputExt(ext string) string {
 	return ext
 }
 
+// CanonicalExt maps spelling variants of one format (jpg/jpeg, htm/html,
+// tif/tiff) to a single name so they compare equal.
+func CanonicalExt(ext string) string {
+	return normalizeOutputExt(normalizeInputExt(ext))
+}
+
 var converterForInput = map[string]map[string]bool{
 	"mp3": {converterFFmpeg: true}, "wav": {converterFFmpeg: true},
 	"aac": {converterFFmpeg: true}, "flac": {converterFFmpeg: true},
