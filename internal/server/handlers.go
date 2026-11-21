@@ -69,10 +69,10 @@ func (s *Server) toDTO(f *store.File) fileDTO {
 	if f.DerivedFrom == "" {
 		for _, d := range s.store.Derived(f.ID) {
 			dext := extOf(d.Name)
-			if dext == "" || produced[dext] {
+			if dext == "" || produced[convertx.CanonicalExt(dext)] {
 				continue
 			}
-			produced[dext] = true
+			produced[convertx.CanonicalExt(dext)] = true
 			available = append(available, formatInfo{
 				Ext:       dext,
 				Name:      d.Name,
@@ -86,7 +86,7 @@ func (s *Server) toDTO(f *store.File) fileDTO {
 	var targets []convertx.Target
 	if f.DerivedFrom == "" {
 		for _, t := range convertx.PossibleTargets(f.Name) {
-			if t.Ext == ext || produced[t.Ext] {
+			if c := convertx.CanonicalExt(t.Ext); c == convertx.CanonicalExt(ext) || produced[c] {
 				continue
 			}
 			targets = append(targets, t)
