@@ -33,7 +33,7 @@
     "tmpdrop — files are stored locally and removed automatically.": "tmpdrop — los archivos se guardan en local y se borran solos.",
     "Source code": "Código fuente", "Password required": "Contraseña necesaria", "Cancel": "Cancelar", "Unlock": "Desbloquear",
     "Name": "Nombre", "Size": "Tamaño", "Expires": "Caduca", "Actions": "Acciones", "Open": "Abrir", "Download": "Descargar",
-    "Convert": "Convertir", "Converting…": "Convirtiendo…", "Delete": "Borrar", "Deleted": "Borrado",
+    "Convert": "Convertir", "Convert ▾": "Convertir ▾", "Download ▾": "Descargar ▾", "Converting…": "Convirtiendo…", "Delete": "Borrar", "Deleted": "Borrado",
     "never": "nunca", "expired": "caducado", "Link copied": "Enlace copiado",
     "Could not copy — select the link above": "No se pudo copiar — selecciona el enlace de arriba",
     "Could not copy — the link is selected": "No se pudo copiar — el enlace está seleccionado",
