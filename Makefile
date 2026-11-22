@@ -1,6 +1,6 @@
 GO     ?= go
 BIN     := bin/tmpdrop
-VERSION ?= 2.5.0
+VERSION ?= 2.5.1
 
 GOFLAGS := -trimpath -ldflags="-s -w -X main.version=$(VERSION)"
 

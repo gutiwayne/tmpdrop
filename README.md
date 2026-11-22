@@ -50,6 +50,9 @@ docker compose up -d
 # open http://localhost:8080, or http://<this-machine>:8080 from anywhere on your network
 ```
 
+That pulls the published image (`ghcr.io/gutiwayne/tmpdrop`, amd64 and arm64);
+`docker compose up -d --build` builds it from the checkout instead.
+
 That is the whole setup. No config file, no variables, no reverse proxy:
 uploads, share links, expiry, passwords and **format conversion** all work
 straight away.

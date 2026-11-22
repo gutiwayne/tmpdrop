@@ -50,8 +50,8 @@ updates:
       - "dependencies"
       - "docker-compose"
     ignore:
-      # Built locally from the Dockerfile, not pulled from a registry.
-      - dependency-name: "tmpdrop"
+      # Our own image: its tag is bumped with each release, not by Dependabot.
+      - dependency-name: "ghcr.io/gutiwayne/tmpdrop"
     groups:
       compose-minor-patch:
         update-types: ["minor", "patch"]
