@@ -7,6 +7,11 @@ the timer runs out.
 Written in Go with **only the standard library**. A single static binary, an
 embedded web UI, a JSON manifest for metadata and local disk for storage.
 
+<p>
+  <img src="docs/screenshot-desktop.png" width="560" alt="tmpdrop on a desktop browser">
+  <img src="docs/screenshot-mobile.png" width="180" alt="tmpdrop on a phone">
+</p>
+
 ## Features
 
 - 📤 Temporary file sharing — drag, drop, copy the link
