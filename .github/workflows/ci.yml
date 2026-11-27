@@ -41,6 +41,27 @@ jobs:
       - name: Coverage
         run: go tool cover -func=coverage.out | tail -1
 
+      - name: Fuzz (short)
+        run: |
+          for t in FuzzSanitizeName FuzzLookupByID; do go test ./internal/store -run '^$' -fuzz "^$t\$" -fuzztime 20s; done
+          for t in FuzzRequestByID FuzzUploadFileName; do go test ./internal/server -run '^$' -fuzz "^$t\$" -fuzztime 20s; done
+
+  vulncheck:
+    name: Vulnerabilities (govulncheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: '1.27'
+          cache: false
+
+      # Reports only vulnerabilities in code tmpdrop actually calls; with no
+      # dependencies that means the Go standard library of this toolchain.
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+
   build:
     name: Cross-platform build
     runs-on: ubuntu-latest
@@ -78,3 +99,14 @@ jobs:
 
       - name: Check the binary starts
         run: docker run --rm tmpdrop:ci -version
+
+      # Fails on HIGH/CRITICAL findings that already have a fix: the Dockerfile
+      # runs apt-get upgrade, so a rebuild picks those up.
+      - name: Scan the image (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: tmpdrop:ci
+          version: v0.76.1
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'

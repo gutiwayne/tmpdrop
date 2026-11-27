@@ -16,6 +16,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 )
 
 const (
@@ -618,11 +619,18 @@ func sanitizeName(name string) string {
 		}
 		return r
 	}, name)
-	if name == "" || name == "." || name == ".." {
+	if name == "" || name == "." || name == ".." || name == "/" {
 		name = cleanName
 	}
 	if len(name) > maxNameLength {
-		name = name[:maxNameLength]
+		cut := maxNameLength
+		for cut > 0 && !utf8.RuneStart(name[cut]) {
+			cut--
+		}
+		name = name[:cut]
+		if name == "" {
+			name = cleanName
+		}
 	}
 	return name
 }

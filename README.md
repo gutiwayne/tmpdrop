@@ -215,6 +215,30 @@ listed address, so it cannot be forged.
 Since the proxy is where authentication belongs, that is also the place to add
 it — basic auth, an SSO forward-auth, whatever you already run.
 
+## Security model
+
+tmpdrop has **no accounts and no login, on purpose**. It is a drop box for a
+network you trust: anyone who can reach it can upload, list, download and
+delete, and any script or app on that network can use the HTTP API without a
+token. Per-file passwords only gate the download of that file.
+
+What it does protect against is the content and the clients themselves:
+uploaded files are served with a sandboxing CSP and `nosniff`, HTML and SVG are
+always sent as attachments, names are sanitized and never used as paths, sizes
+and per-client quotas are enforced, and password guesses are rate limited. The
+image runs as an unprivileged user (uid 10001) and the example compose adds
+`read_only` and `no-new-privileges`.
+
+So, when you deploy it:
+
+- Publish it only on an interface of that trusted network. The compose default
+  (`TMPDROP_BIND=0.0.0.0`) means every interface of the host; set
+  `TMPDROP_BIND=127.0.0.1` when a reverse proxy on the same machine is the only
+  way in.
+- Do not expose it to the internet as is. If it must be reachable from outside,
+  put it behind a reverse proxy with HTTPS and add authentication there (see
+  above), and list the proxy in `trusted_proxies`.
+
 ## Usage
 
 ### Web UI
@@ -337,7 +361,9 @@ Covers configuration precedence, store behaviour (limits, quotas, expiry,
 sweep, persistence), the ConvertX client against a simulated instance
 (auto-registration on both 401 and 403, re-auth on invalid sessions, streamed
 uploads declaring an exact Content-Length, timeouts) and the full HTTP flow from
-upload to converted download.
+upload to converted download. Fuzz tests feed arbitrary file names and ids
+to the store and the HTTP handlers (`go test ./internal/... -fuzz <name>`); CI runs
+each for a short while, plus `govulncheck` and a Trivy scan of the image.
 
 ## Implementation notes
 
