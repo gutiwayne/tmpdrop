@@ -33,7 +33,7 @@ func testConfig() config.Config {
 	}
 }
 
-func newTestServer(t *testing.T, dir string, cfg config.Config) *httptest.Server {
+func newTestServer(t testing.TB, dir string, cfg config.Config) *httptest.Server {
 	t.Helper()
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	if cfg.StorageDir == "" {
@@ -54,7 +54,7 @@ func newTestServer(t *testing.T, dir string, cfg config.Config) *httptest.Server
 	return srv
 }
 
-func uploadFile(t *testing.T, base, name, content string, fields map[string]string) *http.Response {
+func uploadFile(t testing.TB, base, name, content string, fields map[string]string) *http.Response {
 	t.Helper()
 	var buf bytes.Buffer
 	mw := multipart.NewWriter(&buf)
